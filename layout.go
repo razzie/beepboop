@@ -4,6 +4,7 @@ import (
 	"html/template"
 	"net/http"
 	"strings"
+	"time"
 )
 
 var styleT = `
@@ -147,6 +148,12 @@ func (l *layout) BindTemplate(pageTemplate string, stylesheets, scripts []string
 	if tmpl.Lookup("style") == nil {
 		tmpl = template.Must(tmpl.New("style").Parse(styleT))
 	}
+
+	tmpl.Funcs(template.FuncMap{
+		"TimeElapsed": func(then int64) string {
+			return TimeElapsed(time.Now(), time.Unix(then, 0), false)
+		},
+	})
 
 	return func(w http.ResponseWriter, r *http.Request, title string, data interface{}, statusCode int) {
 		view := struct {
