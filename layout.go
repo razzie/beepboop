@@ -71,6 +71,10 @@ tr:not(:first-child) > td:last-child {
 	border-radius: 0 10px 10px 0;
 	border: 0;
 }
+tr:not(:first-child) > td:only-child {
+	border-radius: 10px;
+	border: 0;
+}
 small {
 	color: dimgrey;
 }
