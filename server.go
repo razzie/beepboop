@@ -11,6 +11,7 @@ type Server struct {
 	mux        http.ServeMux
 	FaviconPNG []byte
 	Metadata   map[string]string
+	DB         *DB
 }
 
 // NewServer creates a new Server
@@ -61,7 +62,21 @@ func (srv *Server) AddPages(pages ...*Page) {
 	}
 }
 
+// ConnectDB ...
+func (srv *Server) ConnectDB(redisAddr, redisPw string, redisDb int) error {
+	db, err := NewDB(redisAddr, redisPw, redisDb)
+	if err != nil {
+		return err
+	}
+
+	srv.DB = db
+	return nil
+}
+
 func (srv *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if srv.DB != nil {
+		r = r.WithContext(srv.DB.ToContext(r.Context()))
+	}
 	srv.mux.ServeHTTP(w, r)
 }
 
