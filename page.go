@@ -1,7 +1,6 @@
 package beepboop
 
 import (
-	"log"
 	"net/http"
 	"strings"
 
@@ -20,14 +19,14 @@ type Page struct {
 }
 
 // GetHandler creates a http.HandlerFunc that uses the given layout to render the page
-func (page *Page) GetHandler(layout Layout, logger *log.Logger) (http.HandlerFunc, error) {
+func (page *Page) GetHandler(layout Layout, ctx ContextGetter) (http.HandlerFunc, error) {
 	renderer, err := layout.BindTemplate(page.ContentTemplate, page.Stylesheets, page.Scripts, page.Metadata)
 	if err != nil {
 		return nil, err
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		pr := page.newPageRequest(r, renderer, logger)
+		pr := page.newPageRequest(r, renderer, ctx(r.Context()))
 		pr.logRequest()
 
 		var view *View
@@ -42,15 +41,15 @@ func (page *Page) GetHandler(layout Layout, logger *log.Logger) (http.HandlerFun
 	}, nil
 }
 
-func (page *Page) newPageRequest(r *http.Request, renderer LayoutRenderer, logger *log.Logger) *PageRequest {
+func (page *Page) newPageRequest(r *http.Request, renderer LayoutRenderer, ctx *Context) *PageRequest {
 	return &PageRequest{
+		Context:   ctx,
 		Request:   r,
 		RequestID: xid.New().String(),
 		RelPath:   strings.TrimPrefix(r.URL.Path, page.Path),
 		RelURI:    strings.TrimPrefix(r.RequestURI, page.Path),
 		Title:     page.Title,
 		renderer:  renderer,
-		logger:    logger,
 	}
 }
 

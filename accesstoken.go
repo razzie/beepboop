@@ -23,12 +23,12 @@ func NewAccessToken() *AccessToken {
 	}
 }
 
-// NewAccessTokenFromRequest returns a new AccessToken from a http.Request
-func NewAccessTokenFromRequest(r *http.Request) *AccessToken {
-	token := new(AccessToken).fromCookies(r.Cookies())
-	db := DBFromContext(r.Context())
+// NewAccessTokenFromRequest returns a new AccessToken from a page request
+func NewAccessTokenFromRequest(r *PageRequest) *AccessToken {
+	token := new(AccessToken).fromCookies(r.Request.Cookies())
+	db := r.Context.DB
 	if db != nil && len(token.SessionID) > 0 {
-		dbToken, err := db.GetAccessToken(token.SessionID, reqip.GetClientIP(r))
+		dbToken, err := db.GetAccessToken(token.SessionID, reqip.GetClientIP(r.Request))
 		if err == nil {
 			token.AccessMap.Merge(dbToken.AccessMap)
 		} else {

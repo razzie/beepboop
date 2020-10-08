@@ -2,7 +2,6 @@ package beepboop
 
 import (
 	"fmt"
-	"log"
 	"net"
 	"net/http"
 	"strings"
@@ -13,13 +12,13 @@ import (
 
 // PageRequest ...
 type PageRequest struct {
+	Context   *Context
 	Request   *http.Request
 	RequestID string
 	RelPath   string
 	RelURI    string
 	Title     string
 	renderer  LayoutRenderer
-	logger    *log.Logger
 }
 
 func (r *PageRequest) logRequest() {
@@ -28,7 +27,7 @@ func (r *PageRequest) logRequest() {
 	ua := user_agent.New(r.Request.UserAgent())
 	browser, ver := ua.Browser()
 
-	r.logger.Printf("New request [%s]: %s\n - IP: %s\n - hostnames: %s\n - browser: %s",
+	r.Context.Logger.Printf("New request [%s]: %s\n - IP: %s\n - hostnames: %s\n - browser: %s",
 		r.RequestID,
 		r.Request.URL.Path,
 		ip,
@@ -39,13 +38,13 @@ func (r *PageRequest) logRequest() {
 // Log ...
 func (r *PageRequest) Log(a ...interface{}) {
 	prefix := fmt.Sprintf("[%s] ", r.RequestID)
-	r.logger.Output(2, prefix+fmt.Sprint(a...))
+	r.Context.Logger.Output(2, prefix+fmt.Sprint(a...))
 }
 
 // Logf ...
 func (r *PageRequest) Logf(format string, a ...interface{}) {
 	prefix := fmt.Sprintf("[%s] ", r.RequestID)
-	r.logger.Output(2, prefix+fmt.Sprintf(format, a...))
+	r.Context.Logger.Output(2, prefix+fmt.Sprintf(format, a...))
 }
 
 // Respond returns the default page response View

@@ -1,6 +1,7 @@
 package beepboop
 
 import (
+	"context"
 	"encoding/base64"
 	"log"
 	"net/http"
@@ -45,7 +46,7 @@ func (srv *Server) AddPage(page *Page) error {
 // AddPageWithLayout adds a new servable page with custom layout to the server
 func (srv *Server) AddPageWithLayout(page *Page, layout Layout) error {
 	page.addMetadata(srv.Metadata)
-	renderer, err := page.GetHandler(layout, srv.Logger)
+	renderer, err := page.GetHandler(layout, srv.getContext())
 	if err != nil {
 		return err
 	}
@@ -78,10 +79,17 @@ func (srv *Server) ConnectDB(redisAddr, redisPw string, redisDb int) error {
 }
 
 func (srv *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if srv.DB != nil {
-		r = r.WithContext(srv.DB.ToContext(r.Context()))
-	}
 	srv.mux.ServeHTTP(w, r)
+}
+
+func (srv *Server) getContext() ContextGetter {
+	return func(ctx context.Context) *Context {
+		return &Context{
+			Context: ctx,
+			DB:      srv.DB,
+			Logger:  srv.Logger,
+		}
+	}
 }
 
 var favicon, _ = base64.StdEncoding.DecodeString("" +

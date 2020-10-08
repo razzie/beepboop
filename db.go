@@ -1,7 +1,6 @@
 package beepboop
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -39,20 +38,6 @@ func NewDB(addr, password string, db int) (*DB, error) {
 		CacheDuration:   time.Hour,
 		SessionDuration: time.Hour * 24 * 7,
 	}, nil
-}
-
-// DBFromContext returns the DB from the given Context (if exists)
-func DBFromContext(ctx context.Context) *DB {
-	db := ctx.Value(dbContextKey)
-	if db != nil {
-		return db.(*DB)
-	}
-	return nil
-}
-
-// ToContext adds the DB to the given Context
-func (db *DB) ToContext(ctx context.Context) context.Context {
-	return context.WithValue(ctx, dbContextKey, db)
 }
 
 // CacheValue caches a value
