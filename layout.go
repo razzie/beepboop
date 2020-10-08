@@ -53,7 +53,7 @@ td {
 	border: 1px solid transparent;
 }
 tr:nth-child(odd) > td {
-	background-color: whitesmoke;
+	background-color: #F0F0F0;
 }
 tr:first-child > td {
 	font-weight: bold;
