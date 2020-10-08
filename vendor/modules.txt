@@ -1,3 +1,7 @@
+# github.com/asaskevich/govalidator v0.0.0-20200108200545-475eaeb16496
+github.com/asaskevich/govalidator
+# github.com/biter777/countries v1.3.1
+github.com/biter777/countries
 # github.com/go-redis/redis/v7 v7.4.0
 github.com/go-redis/redis/v7
 github.com/go-redis/redis/v7/internal
@@ -10,5 +14,10 @@ github.com/go-redis/redis/v7/internal/util
 github.com/mo7zayed/reqip
 # github.com/mssola/user_agent v0.5.2
 github.com/mssola/user_agent
+# github.com/razzie/geoip-server v0.0.0-20200717211516-d78b93ab9e14
+github.com/razzie/geoip-server/client
+github.com/razzie/geoip-server/geoip
 # github.com/rs/xid v1.2.1
 github.com/rs/xid
+# github.com/thedevsaddam/gojsonq v2.3.0+incompatible
+github.com/thedevsaddam/gojsonq

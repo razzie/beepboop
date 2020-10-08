@@ -7,15 +7,19 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+
+	geoclient "github.com/razzie/geoip-server/client"
+	"github.com/razzie/geoip-server/geoip"
 )
 
 // Server ...
 type Server struct {
-	mux        http.ServeMux
-	FaviconPNG []byte
-	Metadata   map[string]string
-	DB         *DB
-	Logger     *log.Logger
+	mux         http.ServeMux
+	FaviconPNG  []byte
+	Metadata    map[string]string
+	DB          *DB
+	Logger      *log.Logger
+	GeoIPClient geoip.Client
 }
 
 // NewServer creates a new Server
@@ -25,7 +29,8 @@ func NewServer() *Server {
 		Metadata: map[string]string{
 			"generator": "https://github.com/razzie/beepboop",
 		},
-		Logger: log.New(os.Stdout, "", log.LstdFlags),
+		Logger:      log.New(os.Stdout, "", log.LstdFlags),
+		GeoIPClient: geoclient.DefaultClient,
 	}
 	srv.mux.HandleFunc("/favicon.png", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "image/png")
@@ -85,9 +90,10 @@ func (srv *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (srv *Server) getContext() ContextGetter {
 	return func(ctx context.Context) *Context {
 		return &Context{
-			Context: ctx,
-			DB:      srv.DB,
-			Logger:  srv.Logger,
+			Context:     ctx,
+			DB:          srv.DB,
+			Logger:      srv.Logger,
+			GeoIPClient: srv.GeoIPClient,
 		}
 	}
 }

@@ -23,16 +23,28 @@ type PageRequest struct {
 
 func (r *PageRequest) logRequest() {
 	ip := reqip.GetClientIP(r.Request)
+	if len(ip) == 0 {
+		ip, _, _ = net.SplitHostPort(r.Request.RemoteAddr)
+	}
+
 	hostnames, _ := net.LookupAddr(ip)
+
 	ua := user_agent.New(r.Request.UserAgent())
 	browser, ver := ua.Browser()
 
-	r.Context.Logger.Printf("New request [%s]: %s\n - IP: %s\n - hostnames: %s\n - browser: %s",
+	location := "?"
+	loc, _ := r.Context.GeoIPClient.GetLocation(r.Context.Context, ip)
+	if loc != nil {
+		location = loc.String()
+	}
+
+	r.Context.Logger.Printf("[%s]: %s\n - IP: %s\n - hostnames: %s\n - browser: %s\n - location: %s",
 		r.RequestID,
 		r.Request.URL.Path,
 		ip,
 		strings.Join(hostnames, ", "),
-		fmt.Sprintf("%s %s %s", ua.OS(), browser, ver))
+		fmt.Sprintf("%s %s %s", ua.OS(), browser, ver),
+		location)
 }
 
 // Log ...

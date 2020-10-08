@@ -27,7 +27,7 @@ func (page *Page) GetHandler(layout Layout, ctx ContextGetter) (http.HandlerFunc
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		pr := page.newPageRequest(r, renderer, ctx(r.Context()))
-		pr.logRequest()
+		go pr.logRequest()
 
 		var view *View
 		if page.Handler != nil {
