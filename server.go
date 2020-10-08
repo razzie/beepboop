@@ -2,7 +2,9 @@ package beepboop
 
 import (
 	"encoding/base64"
+	"log"
 	"net/http"
+	"os"
 	"strconv"
 )
 
@@ -12,6 +14,7 @@ type Server struct {
 	FaviconPNG []byte
 	Metadata   map[string]string
 	DB         *DB
+	Logger     *log.Logger
 }
 
 // NewServer creates a new Server
@@ -21,6 +24,7 @@ func NewServer() *Server {
 		Metadata: map[string]string{
 			"generator": "https://github.com/razzie/beepboop",
 		},
+		Logger: log.New(os.Stdout, "", log.LstdFlags),
 	}
 	srv.mux.HandleFunc("/favicon.png", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "image/png")
@@ -41,7 +45,7 @@ func (srv *Server) AddPage(page *Page) error {
 // AddPageWithLayout adds a new servable page with custom layout to the server
 func (srv *Server) AddPageWithLayout(page *Page, layout Layout) error {
 	page.addMetadata(srv.Metadata)
-	renderer, err := page.GetHandler(layout)
+	renderer, err := page.GetHandler(layout, srv.Logger)
 	if err != nil {
 		return err
 	}

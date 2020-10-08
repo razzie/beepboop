@@ -1,8 +1,11 @@
 package beepboop
 
 import (
+	"log"
 	"net/http"
 	"strings"
+
+	"github.com/rs/xid"
 )
 
 // Page ...
@@ -17,14 +20,15 @@ type Page struct {
 }
 
 // GetHandler creates a http.HandlerFunc that uses the given layout to render the page
-func (page *Page) GetHandler(layout Layout) (http.HandlerFunc, error) {
+func (page *Page) GetHandler(layout Layout, logger *log.Logger) (http.HandlerFunc, error) {
 	renderer, err := layout.BindTemplate(page.ContentTemplate, page.Stylesheets, page.Scripts, page.Metadata)
 	if err != nil {
 		return nil, err
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		pr := page.newPageRequest(r, renderer)
+		pr := page.newPageRequest(r, renderer, logger)
+		pr.logRequest()
 
 		var view *View
 		if page.Handler != nil {
@@ -38,13 +42,15 @@ func (page *Page) GetHandler(layout Layout) (http.HandlerFunc, error) {
 	}, nil
 }
 
-func (page *Page) newPageRequest(r *http.Request, renderer LayoutRenderer) *PageRequest {
+func (page *Page) newPageRequest(r *http.Request, renderer LayoutRenderer, logger *log.Logger) *PageRequest {
 	return &PageRequest{
-		Request:  r,
-		RelPath:  strings.TrimPrefix(r.URL.Path, page.Path),
-		RelURI:   strings.TrimPrefix(r.RequestURI, page.Path),
-		Title:    page.Title,
-		renderer: renderer,
+		Request:   r,
+		RequestID: xid.New().String(),
+		RelPath:   strings.TrimPrefix(r.URL.Path, page.Path),
+		RelURI:    strings.TrimPrefix(r.RequestURI, page.Path),
+		Title:     page.Title,
+		renderer:  renderer,
+		logger:    logger,
 	}
 }
 
