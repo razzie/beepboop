@@ -2,7 +2,6 @@ package beepboop
 
 import (
 	"fmt"
-	"log"
 	"net"
 	"net/http"
 	"strings"
@@ -38,13 +37,16 @@ func NewAccessTokenFromRequest(r *PageRequest) *AccessToken {
 		if err == nil {
 			token.AccessMap.Merge(dbToken.AccessMap)
 		} else {
-			log.Println(err)
+			r.Log(err)
 		}
 	}
 	return token
 }
 
 func (token *AccessToken) fromCookies(cookies []*http.Cookie) *AccessToken {
+	if token.AccessMap == nil {
+		token.AccessMap = make(AccessMap)
+	}
 	for _, c := range cookies {
 		if c.Name == "session" {
 			token.SessionID = c.Value
