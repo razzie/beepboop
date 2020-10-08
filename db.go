@@ -11,8 +11,9 @@ import (
 
 // DB ...
 type DB struct {
-	client        *redis.Client
-	CacheDuration time.Duration
+	client          *redis.Client
+	CacheDuration   time.Duration
+	SessionDuration time.Duration
 }
 
 type dbContextKeyType struct{}
@@ -34,8 +35,9 @@ func NewDB(addr, password string, db int) (*DB, error) {
 	}
 
 	return &DB{
-		client:        client,
-		CacheDuration: time.Hour,
+		client:          client,
+		CacheDuration:   time.Hour,
+		SessionDuration: time.Hour * 24 * 7,
 	}, nil
 }
 
@@ -93,4 +95,72 @@ func (db *DB) IsWithinRateLimit(reqType, ip string, rate int) (bool, error) {
 	}
 
 	return int(incr.Val()) <= rate, nil
+}
+
+// AddSessionAccess merges an AccessMap into a session's AccessMap
+func (db *DB) AddSessionAccess(sessionID, ip string, access AccessMap) error {
+	key := fmt.Sprintf("%s:%s", sessionID, ip)
+	data, err := db.client.Get("beepboop-session:" + key).Result()
+	if err != nil {
+		return err
+	}
+
+	sessAccess := make(AccessMap)
+	err = json.Unmarshal([]byte(data), &sessAccess)
+	if err != nil {
+		return err
+	}
+
+	sessAccess.Merge(access)
+
+	newData, err := json.Marshal(sessAccess)
+	if err != nil {
+		return err
+	}
+
+	return db.client.Set(key, string(newData), db.SessionDuration).Err()
+}
+
+// RemoveSessionAccess removes/unmerges an AccessMap from a session's AccessMap
+func (db *DB) RemoveSessionAccess(sessionID, ip string, access AccessMap) error {
+	key := fmt.Sprintf("%s:%s", sessionID, ip)
+	data, err := db.client.Get("beepboop-session:" + key).Result()
+	if err != nil {
+		return err
+	}
+
+	sessAccess := make(AccessMap)
+	err = json.Unmarshal([]byte(data), &sessAccess)
+	if err != nil {
+		return err
+	}
+
+	sessAccess.Unmerge(access)
+
+	newData, err := json.Marshal(sessAccess)
+	if err != nil {
+		return err
+	}
+
+	return db.client.Set(key, string(newData), db.SessionDuration).Err()
+}
+
+// GetAccessToken returns an AccessToken for the given session
+func (db *DB) GetAccessToken(sessionID, ip string) (*AccessToken, error) {
+	key := fmt.Sprintf("%s:%s", sessionID, ip)
+	data, err := db.client.Get("beepboop-session:" + key).Result()
+	if err != nil {
+		return nil, err
+	}
+
+	var access AccessMap
+	err = json.Unmarshal([]byte(data), &access)
+	if err != nil {
+		return nil, err
+	}
+
+	return &AccessToken{
+		SessionID: sessionID,
+		AccessMap: access,
+	}, nil
 }
