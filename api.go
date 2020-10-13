@@ -53,6 +53,11 @@ func (api *API) newPageRequest(r *http.Request, ctx *Context) *PageRequest {
 func renderAPIResponse(w http.ResponseWriter, view *View) {
 	w.WriteHeader(view.StatusCode)
 
+	if view.Error != nil {
+		w.Write([]byte(view.Error.Error()))
+		return
+	}
+
 	if view.Data != nil {
 		data, err := json.MarshalIndent(view.Data, "", "\t")
 		if err != nil {
@@ -65,11 +70,6 @@ func renderAPIResponse(w http.ResponseWriter, view *View) {
 
 	if view.StatusCode == http.StatusOK {
 		w.Write([]byte("OK"))
-		return
-	}
-
-	if view.Error != nil {
-		w.Write([]byte(view.Error.Error()))
 		return
 	}
 
