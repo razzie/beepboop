@@ -47,6 +47,7 @@ func (api *API) newPageRequest(r *http.Request, ctx *Context) *PageRequest {
 		RequestID: xid.New().String(),
 		RelPath:   strings.TrimPrefix(r.URL.Path, api.Path),
 		RelURI:    strings.TrimPrefix(r.RequestURI, api.Path),
+		IsAPI:     true,
 	}
 }
 
