@@ -172,6 +172,8 @@ func (l *layout) BindTemplate(pageTemplate string, stylesheets, scripts []string
 		"TimeElapsed": func(then int64) string {
 			return TimeElapsed(time.Now(), time.Unix(then, 0), false)
 		},
+		"ByteCountSI":  ByteCountSI,
+		"ByteCountIEC": ByteCountIEC,
 	})
 
 	return func(w http.ResponseWriter, r *http.Request, title string, data interface{}, statusCode int) {
