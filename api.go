@@ -26,6 +26,7 @@ func NewAPI(page *Page) *API {
 func (api *API) GetHandler(ctx ContextGetter) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		pr := api.newPageRequest(r, ctx(r.Context()))
+		go pr.logRequest()
 
 		var view *View
 		if api.page.Handler != nil {
