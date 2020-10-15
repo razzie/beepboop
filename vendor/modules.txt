@@ -14,10 +14,10 @@ github.com/go-redis/redis/v7/internal/util
 github.com/mo7zayed/reqip
 # github.com/mssola/user_agent v0.5.2
 github.com/mssola/user_agent
+# github.com/razzie/babble v0.0.0-20201015035939-3d03da02e3ea
+github.com/razzie/babble
 # github.com/razzie/geoip-server v0.0.0-20201008190457-b5a2cab23ca8
 github.com/razzie/geoip-server/client
 github.com/razzie/geoip-server/geoip
 # github.com/thedevsaddam/gojsonq v2.3.0+incompatible
 github.com/thedevsaddam/gojsonq
-# github.com/tjarratt/babble v0.0.0-20191209142150-eecdf8c2339d
-github.com/tjarratt/babble
