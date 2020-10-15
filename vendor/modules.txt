@@ -14,7 +14,7 @@ github.com/go-redis/redis/v7/internal/util
 github.com/mo7zayed/reqip
 # github.com/mssola/user_agent v0.5.2
 github.com/mssola/user_agent
-# github.com/razzie/babble v0.0.0-20201015035939-3d03da02e3ea
+# github.com/razzie/babble v0.0.0-20201015224220-210f32b7a231
 github.com/razzie/babble
 # github.com/razzie/geoip-server v0.0.0-20201008190457-b5a2cab23ca8
 github.com/razzie/geoip-server/client
