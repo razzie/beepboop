@@ -17,7 +17,7 @@ github.com/mssola/user_agent
 # github.com/razzie/geoip-server v0.0.0-20201008190457-b5a2cab23ca8
 github.com/razzie/geoip-server/client
 github.com/razzie/geoip-server/geoip
-# github.com/rs/xid v1.2.1
-github.com/rs/xid
 # github.com/thedevsaddam/gojsonq v2.3.0+incompatible
 github.com/thedevsaddam/gojsonq
+# github.com/tjarratt/babble v0.0.0-20191209142150-eecdf8c2339d
+github.com/tjarratt/babble
