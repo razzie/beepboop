@@ -5,6 +5,8 @@ import (
 	"os"
 	"path"
 	"strings"
+
+	assetfs "github.com/elazarl/go-bindata-assetfs"
 )
 
 // Page ...
@@ -73,6 +75,17 @@ func StaticAssetPage(pagePath, assetDir string) *Page {
 		return pr.HandlerView(func(w http.ResponseWriter, r *http.Request) {
 			http.ServeFile(w, r, path.Join(assetDir, uri))
 		})
+	}
+	return &Page{
+		Path:    pagePath,
+		Handler: handler,
+	}
+}
+
+// AssetFSPage returns a page that serves assets from AssetFS
+func AssetFSPage(pagePath string, assets *assetfs.AssetFS) *Page {
+	handler := func(pr *PageRequest) *View {
+		return pr.HandlerView(http.FileServer(assets).ServeHTTP)
 	}
 	return &Page{
 		Path:    pagePath,
