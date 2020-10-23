@@ -11,10 +11,34 @@ import (
 // Context ...
 type Context struct {
 	Context     context.Context
+	middlewares []Middleware
 	DB          *DB
 	Logger      *log.Logger
 	GeoIPClient geoip.Client
 	Limiters    map[string]*RateLimiter
+}
+
+func newContext(ctx context.Context, srv *Server) *Context {
+	return &Context{
+		Context:     ctx,
+		middlewares: srv.Middlewares,
+		DB:          srv.DB,
+		Logger:      srv.Logger,
+		GeoIPClient: srv.GeoIPClient,
+		Limiters:    srv.Limiters,
+	}
+}
+
+func (ctx *Context) runMiddlewares(pr *PageRequest) *View {
+	if ctx != pr.Context {
+		panic("different Context in PageRequest")
+	}
+	for _, middleware := range ctx.middlewares {
+		if view := middleware(pr); view != nil {
+			return view
+		}
+	}
+	return nil
 }
 
 // GetServiceLimiter returns the rate limiter for the given service and IP
