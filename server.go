@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"time"
 
 	geoclient "github.com/razzie/geoip-server/client"
 	"github.com/razzie/geoip-server/geoip"
@@ -20,17 +21,17 @@ type Server struct {
 	DB          *DB
 	Logger      *log.Logger
 	GeoIPClient geoip.Client
+	Limiters    map[string]*RateLimiter
 }
 
 // NewServer creates a new Server
 func NewServer() *Server {
 	srv := &Server{
-		FaviconPNG: favicon,
-		Metadata: map[string]string{
-			"generator": "https://github.com/razzie/beepboop",
-		},
+		FaviconPNG:  favicon,
+		Metadata:    map[string]string{"generator": "https://github.com/razzie/beepboop"},
 		Logger:      log.New(os.Stdout, "", log.LstdFlags),
 		GeoIPClient: geoclient.DefaultClient,
+		Limiters:    make(map[string]*RateLimiter),
 	}
 	srv.mux.HandleFunc("/favicon.png", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "image/png")
@@ -72,6 +73,12 @@ func (srv *Server) AddPages(pages ...*Page) {
 	}
 }
 
+// AddServiceRate limit sets up a rate limiter for a given service name
+// which can be used by page handlers
+func (srv *Server) AddServiceRate(service string, interval time.Duration, n int) {
+	srv.Limiters[service] = NewRateLimiter(interval, n)
+}
+
 // ConnectDB ...
 func (srv *Server) ConnectDB(redisAddr, redisPw string, redisDb int) error {
 	db, err := NewDB(redisAddr, redisPw, redisDb)
@@ -94,6 +101,7 @@ func (srv *Server) getContext() ContextGetter {
 			DB:          srv.DB,
 			Logger:      srv.Logger,
 			GeoIPClient: srv.GeoIPClient,
+			Limiters:    srv.Limiters,
 		}
 	}
 }
