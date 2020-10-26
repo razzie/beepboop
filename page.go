@@ -81,8 +81,9 @@ func StaticAssetPage(pagePath, assetDir string) *Page {
 		})
 	}
 	return &Page{
-		Path:    pagePath,
-		Handler: handler,
+		Path:           pagePath,
+		Handler:        handler,
+		OnlyLogOnError: true,
 	}
 }
 
@@ -92,7 +93,8 @@ func AssetFSPage(pagePath string, assets *assetfs.AssetFS) *Page {
 		return pr.HandlerView(http.FileServer(assets).ServeHTTP)
 	}
 	return &Page{
-		Path:    pagePath,
-		Handler: handler,
+		Path:           pagePath,
+		Handler:        handler,
+		OnlyLogOnError: true,
 	}
 }
