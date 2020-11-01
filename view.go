@@ -17,12 +17,12 @@ type View struct {
 	closer     func() error
 }
 
-// Render ...
+// Render renders the view
 func (view *View) Render(w http.ResponseWriter) {
 	view.renderer(w)
 }
 
-// Close ...
+// Close frees resources used by the view
 func (view *View) Close() error {
 	if view.closer != nil {
 		return view.closer()
@@ -30,10 +30,10 @@ func (view *View) Close() error {
 	return nil
 }
 
-// ViewOption ...
+// ViewOption is used to customize the error message, error code or data in the view
 type ViewOption func(view *View)
 
-// WithError ...
+// WithError sets the view error and error code
 func WithError(err error, errcode int) ViewOption {
 	return func(view *View) {
 		view.Error = err
@@ -41,12 +41,12 @@ func WithError(err error, errcode int) ViewOption {
 	}
 }
 
-// WithErrorMessage ...
+// WithErrorMessage sets the view error message and error code
 func WithErrorMessage(errmsg string, errcode int) ViewOption {
 	return WithError(fmt.Errorf("%s", errmsg), errcode)
 }
 
-// WithData ...
+// WithData sets the view data
 func WithData(data interface{}) ViewOption {
 	return func(view *View) {
 		view.Data = data
@@ -70,12 +70,12 @@ func ErrorView(r *http.Request, errmsg string, errcode int, opts ...ViewOption) 
 	return v
 }
 
-// ErrorView ...
+// ErrorView returns a View that represents an error
 func (r *PageRequest) ErrorView(errmsg string, errcode int, opts ...ViewOption) *View {
 	return ErrorView(r.Request, errmsg, errcode, opts...)
 }
 
-// EmbedView returns a View that embeds the given website
+// EmbedView returns a View that embeds the given URL
 func EmbedView(url string, opts ...ViewOption) *View {
 	v := &View{
 		StatusCode: http.StatusOK,
@@ -92,12 +92,12 @@ func EmbedView(url string, opts ...ViewOption) *View {
 	return v
 }
 
-// EmbedView ...
+// EmbedView returns a View that embeds the given URL
 func (r *PageRequest) EmbedView(url string, opts ...ViewOption) *View {
 	return EmbedView(url, opts...)
 }
 
-// RedirectView ...
+// RedirectView returns a View that redirects to the given URL
 func RedirectView(r *http.Request, url string, opts ...ViewOption) *View {
 	v := &View{
 		StatusCode: http.StatusOK,
@@ -112,12 +112,12 @@ func RedirectView(r *http.Request, url string, opts ...ViewOption) *View {
 	return v
 }
 
-// RedirectView ...
+// RedirectView returns a View that redirects to the given URL
 func (r *PageRequest) RedirectView(url string, opts ...ViewOption) *View {
 	return RedirectView(r.Request, url, opts...)
 }
 
-// CookieAndRedirectView ...
+// CookieAndRedirectView returns a View that contains a cookie and redirects to the given URL
 func CookieAndRedirectView(r *http.Request, cookie *http.Cookie, url string, opts ...ViewOption) *View {
 	v := &View{
 		StatusCode: http.StatusOK,
@@ -134,12 +134,12 @@ func CookieAndRedirectView(r *http.Request, cookie *http.Cookie, url string, opt
 	return v
 }
 
-// CookieAndRedirectView ...
+// CookieAndRedirectView returns a View that contains a cookie and redirects to the given URL
 func (r *PageRequest) CookieAndRedirectView(cookie *http.Cookie, url string, opts ...ViewOption) *View {
 	return CookieAndRedirectView(r.Request, cookie, url, opts...)
 }
 
-// CopyView ...
+// CopyView returns a View that copies the content of a http.Response
 func CopyView(resp *http.Response, opts ...ViewOption) *View {
 	v := &View{
 		StatusCode: resp.StatusCode,
@@ -159,12 +159,12 @@ func CopyView(resp *http.Response, opts ...ViewOption) *View {
 	return v
 }
 
-// CopyView ...
+// CopyView returns a View that copies the content of a http.Response
 func (r *PageRequest) CopyView(resp *http.Response, opts ...ViewOption) *View {
 	return CopyView(resp, opts...)
 }
 
-// AsyncCopyView ...
+// AsyncCopyView returns a View that copies the content of a http.Response asynchronously
 func AsyncCopyView(resp *http.Response, opts ...ViewOption) *View {
 	v := &View{
 		StatusCode: resp.StatusCode,
@@ -184,12 +184,12 @@ func AsyncCopyView(resp *http.Response, opts ...ViewOption) *View {
 	return v
 }
 
-// AsyncCopyView ...
+// AsyncCopyView returns a View that copies the content of a http.Response asynchronously
 func (r *PageRequest) AsyncCopyView(resp *http.Response, opts ...ViewOption) *View {
 	return AsyncCopyView(resp, opts...)
 }
 
-// HandlerView ...
+// HandlerView returns a View that uses a http.HandlerFunc to render a response
 func HandlerView(r *http.Request, handler http.HandlerFunc, opts ...ViewOption) *View {
 	v := &View{
 		StatusCode: http.StatusOK,
@@ -203,12 +203,12 @@ func HandlerView(r *http.Request, handler http.HandlerFunc, opts ...ViewOption) 
 	return v
 }
 
-// HandlerView ...
+// HandlerView returns a View that uses a http.HandlerFunc to render a response
 func (r *PageRequest) HandlerView(handler http.HandlerFunc, opts ...ViewOption) *View {
 	return HandlerView(r.Request, handler, opts...)
 }
 
-// FileView ...
+// FileView returns a View that serves a file
 func FileView(r *http.Request, file http.File, mime string, opts ...ViewOption) *View {
 	v := &View{
 		StatusCode: http.StatusOK,
@@ -234,7 +234,7 @@ func FileView(r *http.Request, file http.File, mime string, opts ...ViewOption) 
 	return v
 }
 
-// FileView ...
+// FileView returns a View that serves a file
 func (r *PageRequest) FileView(file http.File, mime string, opts ...ViewOption) *View {
 	return FileView(r.Request, file, mime, opts...)
 }
