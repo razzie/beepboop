@@ -198,3 +198,35 @@ func HandlerView(r *http.Request, handler http.HandlerFunc, opts ...ViewOption) 
 func (r *PageRequest) HandlerView(handler http.HandlerFunc, opts ...ViewOption) *View {
 	return HandlerView(r.Request, handler, opts...)
 }
+
+// FileView ...
+func FileView(r *http.Request, file http.File, mime string, opts ...ViewOption) *View {
+	v := &View{
+		StatusCode: http.StatusOK,
+	}
+	for _, opt := range opts {
+		opt(v)
+	}
+	fi, err := file.Stat()
+	if err != nil {
+		v.Error = err
+		v.renderer = func(w http.ResponseWriter) {
+			errViewRenderer(w, r, err.Error(), err.Error(), http.StatusInternalServerError)
+		}
+		file.Close()
+		return v
+	}
+	v.renderer = func(w http.ResponseWriter) {
+		defer file.Close()
+		if len(mime) > 0 {
+			w.Header().Set("Content-Type", mime)
+		}
+		http.ServeContent(w, r, fi.Name(), fi.ModTime(), file)
+	}
+	return v
+}
+
+// FileView ...
+func (r *PageRequest) FileView(file http.File, mime string, opts ...ViewOption) *View {
+	return FileView(r.Request, file, mime, opts...)
+}
