@@ -219,7 +219,7 @@ func (r *PageRequest) HandlerView(handler http.HandlerFunc, opts ...ViewOption) 
 }
 
 // FileView returns a View that serves a file
-func FileView(r *http.Request, file http.File, mime string, opts ...ViewOption) *View {
+func FileView(r *http.Request, file http.File, mime string, attachment bool, opts ...ViewOption) *View {
 	v := &View{
 		StatusCode: http.StatusOK,
 		closer:     file.Close,
@@ -236,6 +236,9 @@ func FileView(r *http.Request, file http.File, mime string, opts ...ViewOption) 
 		return v
 	}
 	v.renderer = func(w http.ResponseWriter) {
+		if attachment {
+			w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%q", fi.Name()))
+		}
 		if len(mime) > 0 {
 			w.Header().Set("Content-Type", mime)
 		}
@@ -245,6 +248,6 @@ func FileView(r *http.Request, file http.File, mime string, opts ...ViewOption) 
 }
 
 // FileView returns a View that serves a file
-func (r *PageRequest) FileView(file http.File, mime string, opts ...ViewOption) *View {
-	return FileView(r.Request, file, mime, opts...)
+func (r *PageRequest) FileView(file http.File, mime string, attachment bool, opts ...ViewOption) *View {
+	return FileView(r.Request, file, mime, attachment, opts...)
 }
