@@ -14,11 +14,20 @@ type View struct {
 	Data       interface{}
 	Redirect   string
 	renderer   func(w http.ResponseWriter)
+	closer     func() error
 }
 
 // Render ...
 func (view *View) Render(w http.ResponseWriter) {
 	view.renderer(w)
+}
+
+// Close ...
+func (view *View) Close() error {
+	if view.closer != nil {
+		return view.closer()
+	}
+	return nil
 }
 
 // ViewOption ...
@@ -160,12 +169,12 @@ func AsyncCopyView(resp *http.Response, opts ...ViewOption) *View {
 	v := &View{
 		StatusCode: resp.StatusCode,
 		Data:       resp,
+		closer:     resp.Body.Close,
 	}
 	for _, opt := range opts {
 		opt(v)
 	}
 	v.renderer = func(w http.ResponseWriter) {
-		defer resp.Body.Close()
 		for k, v := range resp.Header {
 			w.Header().Set(k, v[0])
 		}
@@ -203,6 +212,7 @@ func (r *PageRequest) HandlerView(handler http.HandlerFunc, opts ...ViewOption) 
 func FileView(r *http.Request, file http.File, mime string, opts ...ViewOption) *View {
 	v := &View{
 		StatusCode: http.StatusOK,
+		closer:     file.Close,
 	}
 	for _, opt := range opts {
 		opt(v)
@@ -213,11 +223,9 @@ func FileView(r *http.Request, file http.File, mime string, opts ...ViewOption) 
 		v.renderer = func(w http.ResponseWriter) {
 			errViewRenderer(w, r, err.Error(), err.Error(), http.StatusInternalServerError)
 		}
-		file.Close()
 		return v
 	}
 	v.renderer = func(w http.ResponseWriter) {
-		defer file.Close()
 		if len(mime) > 0 {
 			w.Header().Set("Content-Type", mime)
 		}

@@ -37,6 +37,7 @@ func (api *API) GetHandler(getctx ContextGetter) http.HandlerFunc {
 			view = pr.Respond(nil)
 		}
 
+		defer view.Close()
 		renderAPIResponse(w, view)
 	}
 }
