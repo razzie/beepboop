@@ -53,10 +53,10 @@ func WithData(data interface{}) ViewOption {
 	}
 }
 
-var errViewRenderer, _ = DefaultLayout.BindTemplate("<strong>{{.}}</strong>", nil, nil, nil)
+var defaultErrorRenderer = GetErrorRenderer(DefaultLayout)
 
-// ErrorView returns a View that represents an error
-func ErrorView(r *http.Request, errmsg string, errcode int, opts ...ViewOption) *View {
+// CustomErrorView returns a View that represents an error and uses a custom renderer
+func CustomErrorView(r *http.Request, errmsg string, errcode int, renderer ErrorRenderer, opts ...ViewOption) *View {
 	v := &View{
 		StatusCode: errcode,
 		Error:      fmt.Errorf("%s", errmsg),
@@ -65,9 +65,19 @@ func ErrorView(r *http.Request, errmsg string, errcode int, opts ...ViewOption) 
 		opt(v)
 	}
 	v.renderer = func(w http.ResponseWriter) {
-		errViewRenderer(w, r, errmsg, errmsg, v.StatusCode)
+		renderer(w, r, errmsg, v.StatusCode)
 	}
 	return v
+}
+
+// CustomErrorView returns a View that represents an error and uses a custom renderer
+func (r *PageRequest) CustomErrorView(errmsg string, errcode int, renderer ErrorRenderer, opts ...ViewOption) *View {
+	return CustomErrorView(r.Request, errmsg, errcode, renderer, opts...)
+}
+
+// ErrorView returns a View that represents an error
+func ErrorView(r *http.Request, errmsg string, errcode int, opts ...ViewOption) *View {
+	return CustomErrorView(r, errmsg, errcode, defaultErrorRenderer, opts...)
 }
 
 // ErrorView returns a View that represents an error
@@ -221,7 +231,7 @@ func FileView(r *http.Request, file http.File, mime string, opts ...ViewOption) 
 	if err != nil {
 		v.Error = err
 		v.renderer = func(w http.ResponseWriter) {
-			errViewRenderer(w, r, err.Error(), err.Error(), http.StatusInternalServerError)
+			defaultErrorRenderer(w, r, err.Error(), http.StatusInternalServerError)
 		}
 		return v
 	}
