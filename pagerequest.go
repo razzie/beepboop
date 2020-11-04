@@ -96,3 +96,8 @@ func (r *PageRequest) Respond(data interface{}, opts ...ViewOption) *View {
 	}
 	return v
 }
+
+// AccessToken returns an AccessToken from this page request
+func (r *PageRequest) AccessToken() *AccessToken {
+	return NewAccessTokenFromRequest(r)
+}
