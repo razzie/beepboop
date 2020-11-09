@@ -41,9 +41,7 @@ func NewServer() *Server {
 		w.Header().Set("Content-Length", strconv.Itoa(len(srv.FaviconPNG)))
 		_, _ = w.Write(srv.FaviconPNG)
 	})
-	srv.mux.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
-		http.Redirect(w, r, "/favicon.png", http.StatusSeeOther)
-	})
+	srv.mux.Handle("/favicon.ico", http.RedirectHandler("/favicon.png", http.StatusMovedPermanently))
 	return srv
 }
 
