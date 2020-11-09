@@ -1,7 +1,6 @@
 package beepboop
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -16,20 +15,12 @@ type AccessToken struct {
 	AccessMap AccessMap
 }
 
-// NewAccessToken returns a new AccessToken
-func NewAccessToken() *AccessToken {
-	return &AccessToken{
-		AccessMap: make(AccessMap),
-	}
-}
-
-// NewAccessTokenFromRequest returns a new AccessToken from a page request
-func NewAccessTokenFromRequest(r *PageRequest) *AccessToken {
+func newAccessTokenFromRequest(r *PageRequest) *AccessToken {
 	token := new(AccessToken).fromCookies(r.Request.Cookies())
 	token.IP = reqip.GetClientIP(r.Request)
 	db := r.Context.DB
 	if db != nil && len(token.SessionID) > 0 {
-		dbToken, err := db.GetAccessToken(token.SessionID, token.IP)
+		dbToken, err := db.getAccessToken(token.SessionID, token.IP)
 		if err == nil {
 			token.AccessMap.Merge(dbToken.AccessMap)
 		} else {
@@ -57,25 +48,20 @@ func (token *AccessToken) fromCookies(cookies []*http.Cookie) *AccessToken {
 	return token
 }
 
-// ToCookie returns either a SessionID cookie or a cookie containing the access to a single resource
-func (token *AccessToken) ToCookie(expiration time.Duration) *http.Cookie {
+func (token *AccessToken) getSessionCookie(expiration time.Duration) *http.Cookie {
+	return &http.Cookie{
+		Name:    "session",
+		Value:   token.SessionID,
+		Path:    "/",
+		Expires: time.Now().Add(expiration),
+	}
+}
+
+// ToCookies returns either a single SessionID cookie or a list of cookies
+// containing access to the resources in the access token
+func (token *AccessToken) ToCookies(expiration time.Duration) []*http.Cookie {
 	if len(token.SessionID) > 0 {
-		return &http.Cookie{
-			Name:    "session",
-			Value:   token.SessionID,
-			Path:    "/",
-			Expires: time.Now().Add(expiration),
-		}
+		return []*http.Cookie{token.getSessionCookie(expiration)}
 	}
-	for typ, res := range token.AccessMap {
-		for resname, code := range res {
-			return &http.Cookie{
-				Name:    fmt.Sprintf("%s-%s", typ, resname),
-				Value:   string(code),
-				Path:    "/",
-				Expires: time.Now().Add(expiration),
-			}
-		}
-	}
-	return nil
+	return token.AccessMap.ToCookies(expiration)
 }

@@ -1,6 +1,7 @@
 package beepboop
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -24,6 +25,36 @@ func (view *View) Render(w http.ResponseWriter) {
 		http.SetCookie(w, cookie)
 	}
 	view.renderer(w)
+}
+
+// RenderAPIResponse renders the API response of the view
+func (view *View) RenderAPIResponse(w http.ResponseWriter) {
+	for _, cookie := range view.cookies {
+		http.SetCookie(w, cookie)
+	}
+	w.WriteHeader(view.StatusCode)
+
+	if view.Error != nil {
+		w.Write([]byte(view.Error.Error()))
+		return
+	}
+
+	if view.Data != nil {
+		data, err := json.MarshalIndent(view.Data, "", "\t")
+		if err != nil {
+			w.Write([]byte(err.Error()))
+			return
+		}
+		w.Write(data)
+		return
+	}
+
+	if view.StatusCode == http.StatusOK {
+		w.Write([]byte("OK"))
+		return
+	}
+
+	w.Write([]byte(http.StatusText(view.StatusCode)))
 }
 
 // Close frees resources used by the view
