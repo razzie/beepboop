@@ -29,16 +29,22 @@ type PageRequest struct {
 }
 
 func newPageRequest(page *Page, r *http.Request, ctx *Context, renderer LayoutRenderer) *PageRequest {
-	return &PageRequest{
+	pr := &PageRequest{
 		Context:   ctx,
 		Request:   r,
 		RequestID: newRequestID(),
-		RelPath:   strings.TrimPrefix(r.URL.Path, page.Path),
-		RelURI:    strings.TrimPrefix(r.RequestURI, page.Path),
 		Title:     page.Title,
 		renderer:  renderer,
 		IsAPI:     renderer == nil,
 	}
+	if pr.IsAPI {
+		pr.RelPath = strings.TrimPrefix(r.URL.Path, "/api"+page.Path)
+		pr.RelURI = strings.TrimPrefix(r.URL.RequestURI(), "/api"+page.Path)
+	} else {
+		pr.RelPath = strings.TrimPrefix(r.URL.Path, page.Path)
+		pr.RelURI = strings.TrimPrefix(r.URL.RequestURI(), page.Path)
+	}
+	return pr
 }
 
 func newRequestID() string {
