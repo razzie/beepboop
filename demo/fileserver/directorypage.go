@@ -29,6 +29,16 @@ type dirView struct {
 }
 
 func handleDirPage(r *beepboop.PageRequest, root Directory) *beepboop.View {
+	r.Title = r.RelPath
+	v := dirView{
+		Dir: r.RelPath,
+	}
+
+	db := r.Context.DB
+	if db != nil && db.GetCachedValue("dir:"+r.RelPath, &v.Entries) == nil {
+		return r.Respond(v)
+	}
+
 	file, entries, err := root.GetFileOrEntries(r.RelPath)
 	if err != nil {
 		return r.ErrorView(err.Error(), http.StatusInternalServerError)
@@ -37,10 +47,10 @@ func handleDirPage(r *beepboop.PageRequest, root Directory) *beepboop.View {
 		return r.FileView(file, "", false)
 	}
 
-	r.Title = r.RelPath
-	v := &dirView{
-		Dir:     r.RelPath,
-		Entries: entries,
+	if db != nil {
+		db.CacheValue("dir:"+r.RelPath, entries, false)
 	}
+
+	v.Entries = entries
 	return r.Respond(v)
 }
