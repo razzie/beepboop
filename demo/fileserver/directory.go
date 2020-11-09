@@ -10,6 +10,12 @@ import (
 	"strings"
 )
 
+// errors
+var (
+	ErrDirectoryRead = fmt.Errorf("Failed to read directory")
+	ErrFileRead      = fmt.Errorf("Failed to read file")
+)
+
 // Directory ...
 type Directory string
 
@@ -18,13 +24,16 @@ func (root Directory) GetEntries(relPath string) ([]*Entry, error) {
 	if root == "" {
 		root = "."
 	}
+	if isHiddenFile(relPath) {
+		return nil, ErrDirectoryRead
+	}
 	absPath, err := root.absPath(relPath)
 	if err != nil {
 		return nil, err
 	}
 	files, err := ioutil.ReadDir(absPath)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to read directory")
+		return nil, ErrDirectoryRead
 	}
 
 	entries := make([]*Entry, 0, len(files)+1)
@@ -51,13 +60,16 @@ func (root Directory) Open(relPath string) (http.File, error) {
 	if root == "" {
 		root = "."
 	}
+	if isHiddenFile(relPath) {
+		return nil, ErrFileRead
+	}
 	filename, err := root.resolveSymlinks(relPath)
 	if err != nil {
 		return nil, err
 	}
 	file, err := http.Dir(string(root)).Open(filename)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to read file")
+		return nil, ErrFileRead
 	}
 	return file, nil
 }
@@ -114,4 +126,8 @@ func isDir(dir string) bool {
 		return false
 	}
 	return fi.IsDir()
+}
+
+func isHiddenFile(file string) bool {
+	return len(file) > 1 && path.Base(file)[0] == '.'
 }
