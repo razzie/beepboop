@@ -1,0 +1,28 @@
+<table>
+    <tr>
+        <td>Name</td>
+        <td>Type</td>
+        <td>Size</td>
+        <td>Created</td>
+        <td>Modified</td>
+    </tr>
+    {{$Dir := .Dir}}
+    {{range .Entries}}
+        <tr>
+            <td>{{.Prefix}} <a href="{{.FullName}}">{{.Name}}</a></td>
+            <td>
+                {{if .PrimaryType}}
+                    <a href="{{$Dir}}?filter={{.PrimaryType}}">{{.PrimaryType}}</a>
+                    {{if .SecondaryType}}/{{.SecondaryType}}{{end}}
+                {{end}}
+            </td>
+            <td>{{if .Size}}{{ByteCountSI .Size}}{{end}}</td>
+            <td>{{if .Created}}{{TimeElapsed .Created}}{{end}}</td>
+            <td>{{if .Modified}}{{TimeElapsed .Modified}}{{end}}</td>
+        </tr>
+    {{else}}
+        <tr>
+            <td colspan="5">Empty</td>
+        </tr>
+    {{end}}
+</table>
