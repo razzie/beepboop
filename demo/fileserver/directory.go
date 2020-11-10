@@ -14,58 +14,21 @@ import (
 var (
 	ErrDirectoryRead = fmt.Errorf("Failed to read directory")
 	ErrFileRead      = fmt.Errorf("Failed to read file")
+	ErrOutsideRoot   = fmt.Errorf("File points outside of the root directory")
+	ErrHiddenFile    = fmt.Errorf("Hidden files are forbidden")
 )
 
 // Directory ...
 type Directory string
 
-// GetEntries ...
-func (root Directory) GetEntries(relPath string) ([]*Entry, error) {
-	if root == "" {
-		root = "."
-	}
-	if isHiddenFile(relPath) {
-		return nil, ErrDirectoryRead
-	}
-	absPath, err := root.absPath(relPath)
-	if err != nil {
-		return nil, err
-	}
-	files, err := ioutil.ReadDir(absPath)
-	if err != nil {
-		return nil, ErrDirectoryRead
-	}
-
-	entries := make([]*Entry, 0, len(files)+1)
-	if len(relPath) > 0 {
-		entries = append(entries, newDirEntry("..", relPath))
-	}
-	for _, file := range files {
-		entry := newEntry(file, relPath)
-		if entry.Name[0] == '.' {
-			continue
-		}
-		entry.FullName, err = root.resolveSymlinks(entry.FullName)
-		if err != nil {
-			continue
-		}
-		entries = append(entries, entry)
-	}
-	sortEntries(entries)
-	return entries, nil
-}
-
 // Open ...
 func (root Directory) Open(relPath string) (http.File, error) {
-	if root == "" {
-		root = "."
-	}
-	if isHiddenFile(relPath) {
-		return nil, ErrFileRead
-	}
-	filename, err := root.resolveSymlinks(relPath)
+	filename, isDir, err := root.resolve(relPath)
 	if err != nil {
 		return nil, err
+	}
+	if isDir {
+		return nil, ErrFileRead
 	}
 	file, err := http.Dir(string(root)).Open(filename)
 	if err != nil {
@@ -75,57 +38,93 @@ func (root Directory) Open(relPath string) (http.File, error) {
 }
 
 // GetFileOrEntries ...
-func (root Directory) GetFileOrEntries(relPath string) (http.File, []*Entry, error) {
+func (root Directory) GetFileOrEntries(relPath string) (file http.File, entries []*Entry, err error) {
+	filename, isDir, err := root.resolve(relPath)
+	if err != nil {
+		return
+	}
+	if isDir {
+		entries, err = root.getEntries(filename)
+		return
+	}
+	file, err = http.Dir(string(root)).Open(filename)
+	return
+}
+
+// GetEntries ...
+func (root Directory) GetEntries(relPath string) ([]*Entry, error) {
+	dir, isDir, err := root.resolve(relPath)
+	if err != nil {
+		return nil, err
+	}
+	if !isDir {
+		return nil, ErrDirectoryRead
+	}
+	return root.getEntries(dir)
+}
+
+func (root Directory) getEntries(relPath string) ([]*Entry, error) {
+	files, err := ioutil.ReadDir(relPath)
+	if err != nil {
+		return nil, ErrDirectoryRead
+	}
+	entries := make([]*Entry, 0, len(files)+1)
+	if len(relPath) > 0 {
+		entries = append(entries, newDirEntry("..", relPath))
+	}
+	for _, file := range files {
+		entry := newEntry(file, relPath)
+		if entry.Name[0] == '.' {
+			continue
+		}
+		entry.FullName, _, err = root.resolve(entry.FullName)
+		if err != nil {
+			continue
+		}
+		entries = append(entries, entry)
+	}
+	sortEntries(entries)
+	return entries, nil
+}
+
+func (root Directory) resolve(relPath string) (resolvedPath string, isDir bool, err error) {
 	if root == "" {
 		root = "."
 	}
-	if isDir(path.Join(string(root), relPath)) {
-		entries, err := root.GetEntries(relPath)
-		return nil, entries, err
+	if isHiddenFile(relPath) {
+		err = ErrHiddenFile
+		return
 	}
-	file, err := root.Open(relPath)
-	return file, nil, err
-}
-
-func (root Directory) absPath(relPath string) (string, error) {
 	absRoot, err := filepath.Abs(string(root))
 	if err != nil {
-		return "", err
+		return
 	}
-	return path.Join(absRoot, relPath), nil
-}
-
-func (root Directory) resolveSymlinks(relPath string) (string, error) {
-	absRoot, err := filepath.Abs(string(root))
-	if err != nil {
-		return "", err
-	}
-	absRoot += "/"
 	filename := path.Join(absRoot, relPath)
 	for {
-		fi, err := os.Lstat(filename)
+		var fi os.FileInfo
+		fi, err = os.Lstat(filename)
 		if err != nil {
-			return "", err
+			return
 		}
 		if fi.Mode()&os.ModeSymlink == 0 {
 			if !strings.HasPrefix(filename, absRoot) {
-				return "", fmt.Errorf("File points outside of the root directory")
+				err = ErrOutsideRoot
+				return
 			}
-			return strings.TrimPrefix(filename, absRoot), nil
+			resolvedPath = filepath.ToSlash(strings.TrimPrefix(filename, absRoot))
+			isDir = fi.IsDir()
+			if len(resolvedPath) == 0 {
+				resolvedPath = "."
+			} else if resolvedPath[0] == '/' {
+				resolvedPath = resolvedPath[1:]
+			}
+			return
 		}
 		filename, err = os.Readlink(filename)
 		if err != nil {
-			return "", err
+			return
 		}
 	}
-}
-
-func isDir(dir string) bool {
-	fi, err := os.Stat(dir)
-	if err != nil {
-		return false
-	}
-	return fi.IsDir()
 }
 
 func isHiddenFile(file string) bool {
