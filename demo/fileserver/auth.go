@@ -52,6 +52,7 @@ type authPageView struct {
 	Directory  string
 	AccessType string
 	Redirect   string
+	Referer    string
 }
 
 func handleAuthPage(r *beepboop.PageRequest, root Directory) *beepboop.View {
@@ -62,14 +63,19 @@ func handleAuthPage(r *beepboop.PageRequest, root Directory) *beepboop.View {
 		Directory:  dir,
 		AccessType: "view",
 		Redirect:   req.URL.Query().Get("r"),
+		Referer:    req.Header.Get("Referer"),
 	}
 	if len(v.Redirect) == 0 {
 		v.Redirect = "/" + dir
+	}
+	if len(v.Referer) == 0 {
+		v.Referer = "/" + path.Dir(dir)
 	}
 	if req.Method == "POST" {
 		req.ParseForm()
 		pw := req.FormValue("password")
 		v.Redirect = req.FormValue("redirect")
+		v.Referer = req.FormValue("referer")
 		if pwhash, _, _ := root.getPasswordHash(dir); pwhash == hash([]byte(pw)) {
 			r.Session().AddAccess("view", dir, pwhash)
 			r.Log("Password accepted!")

@@ -8,8 +8,9 @@
 <form method="post">
     <input type="password" name="password" placeholder="Password" /><br />
     <input type="hidden" name="redirect" value="{{.Redirect}}" />
+    <input type="hidden" name="referer" value="{{.Referer}}" />
     <button>Enter</button>
 </form>
 <div style="float: right">
-    <a href="{{.Redirect}}">Go back &#10548;</a>
+    <a href="{{.Referer}}">Go back &#10548;</a>
 </div>
