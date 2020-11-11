@@ -8,6 +8,8 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+
+	"github.com/razzie/beepboop"
 )
 
 // errors
@@ -69,7 +71,7 @@ func (root Directory) getEntries(relPath string) ([]*Entry, error) {
 		return nil, ErrDirectoryRead
 	}
 	entries := make([]*Entry, 0, len(files)+1)
-	if len(relPath) > 0 {
+	if relPath != "." {
 		entries = append(entries, newDirEntry("..", relPath))
 	}
 	for _, file := range files {
@@ -91,7 +93,7 @@ func (root Directory) resolve(relPath string) (resolvedPath string, isDir bool, 
 	if root == "" {
 		root = "."
 	}
-	if isHiddenFile(relPath) {
+	if len(relPath) > 1 && path.Base(relPath)[0] == '.' {
 		err = ErrHiddenFile
 		return
 	}
@@ -127,6 +129,49 @@ func (root Directory) resolve(relPath string) (resolvedPath string, isDir bool, 
 	}
 }
 
-func isHiddenFile(file string) bool {
-	return len(file) > 1 && path.Base(file)[0] == '.'
+// DirectoryPage returns a beepboop.Page that handles the directory view
+func DirectoryPage(root string) *beepboop.Page {
+	contentTemplate, err := ioutil.ReadFile("demo/fileserver/template/directory.html")
+	if err != nil {
+		panic(err)
+	}
+	return &beepboop.Page{
+		Path:            "/",
+		ContentTemplate: string(contentTemplate),
+		Handler: func(r *beepboop.PageRequest) *beepboop.View {
+			return handleDirPage(r, Directory(root))
+		},
+	}
+}
+
+type dirView struct {
+	Dir     string
+	Entries []*Entry
+}
+
+func handleDirPage(r *beepboop.PageRequest, root Directory) *beepboop.View {
+	r.Title = r.RelPath
+	v := dirView{
+		Dir: r.RelPath,
+	}
+
+	db := r.Context.DB
+	if db != nil && db.GetCachedValue("dir:"+r.RelPath, &v.Entries) == nil {
+		return r.Respond(v)
+	}
+
+	file, entries, err := root.GetFileOrEntries(r.RelPath)
+	if err != nil {
+		return r.ErrorView(err.Error(), http.StatusInternalServerError)
+	}
+	if file != nil {
+		return r.FileView(file, "", false)
+	}
+
+	if db != nil {
+		db.CacheValue("dir:"+r.RelPath, entries, false)
+	}
+
+	v.Entries = entries
+	return r.Respond(v)
 }

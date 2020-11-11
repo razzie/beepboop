@@ -32,7 +32,8 @@ func init() {
 
 func main() {
 	srv := beepboop.NewServer()
-	srv.AddPages(DirectoryPage(RootDir))
+	srv.AddMiddlewares(AuthMiddleware(RootDir))
+	srv.AddPages(DirectoryPage(RootDir), AuthPage(RootDir))
 
 	if err := srv.ConnectDB(RedisAddr, RedisPw, RedisDb); err != nil {
 		log.Print(err)
