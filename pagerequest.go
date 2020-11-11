@@ -20,12 +20,12 @@ type PageRequest struct {
 	RequestID string
 	RelPath   string
 	RelURI    string
-	IsAPI     bool
+	PagePath  string
 	Title     string
+	IsAPI     bool
 	renderer  LayoutRenderer
 	logged    bool
-	token     *AccessToken
-	access    AccessMap
+	session   *Session
 }
 
 func newPageRequest(page *Page, r *http.Request, ctx *Context, renderer LayoutRenderer) *PageRequest {
@@ -33,9 +33,10 @@ func newPageRequest(page *Page, r *http.Request, ctx *Context, renderer LayoutRe
 		Context:   ctx,
 		Request:   r,
 		RequestID: newRequestID(),
+		PagePath:  page.Path,
 		Title:     page.Title,
-		renderer:  renderer,
 		IsAPI:     renderer == nil,
+		renderer:  renderer,
 	}
 	if pr.IsAPI {
 		pr.RelPath = strings.TrimPrefix(r.URL.Path, "/api"+page.Path)
@@ -122,47 +123,16 @@ func (r *PageRequest) Respond(data interface{}, opts ...ViewOption) *View {
 	return v
 }
 
-// AccessToken returns an AccessToken from this page request
-func (r *PageRequest) AccessToken() *AccessToken {
-	if r.token == nil {
-		r.token = newAccessTokenFromRequest(r)
+// Session returns the current session
+func (r *PageRequest) Session() *Session {
+	if r.session == nil {
+		r.session = newSession(r)
 	}
-	return r.token
+	return r.session
 }
 
-// AddAccess permits the requester to access the given resources
-func (r *PageRequest) AddAccess(access AccessMap) error {
-	token := r.AccessToken()
-	if db := r.Context.DB; db != nil {
-		if len(token.SessionID) == 0 {
-			token.SessionID = r.RequestID
-		}
-		return db.addSessionAccess(token.SessionID, token.IP, access)
-	}
-	r.access.Merge(access)
-	token.AccessMap.Merge(access)
-	return nil
-}
-
-// RevokeAccess revokes the requester's access to the given resources
-func (r *PageRequest) RevokeAccess(revoke AccessRevokeMap) error {
-	token := r.AccessToken()
-	if db := r.Context.DB; db != nil && len(token.SessionID) > 0 {
-		return db.revokeSessionAccess(token.SessionID, token.IP, revoke)
-	}
-	r.access.Revoke(revoke, true)
-	token.AccessMap.Revoke(revoke, false)
-	return nil
-}
-
-func (r *PageRequest) updateViewAccess(view *View) {
-	if r.token != nil {
-		if len(r.token.SessionID) > 0 {
-			cookie := r.token.getSessionCookie(r.Context.CookieExpiration)
-			view.cookies = append(view.cookies, cookie)
-			return
-		}
-		cookies := r.access.ToCookies(r.Context.CookieExpiration)
-		view.cookies = append(view.cookies, cookies...)
+func (r *PageRequest) updateSession(view *View) {
+	if r.session != nil {
+		view.cookies = append(view.cookies, r.session.toCookies(r.Context.CookieExpiration)...)
 	}
 }

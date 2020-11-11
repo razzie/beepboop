@@ -51,7 +51,7 @@ func (page *Page) getHandler(getctx ContextGetter, layout Layout, renderer Layou
 		}
 
 		defer view.Close()
-		pr.updateViewAccess(view)
+		pr.updateSession(view)
 		if pr.IsAPI {
 			view.RenderAPIResponse(w)
 		} else {

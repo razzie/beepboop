@@ -128,7 +128,7 @@ func (db *DB) revokeSessionAccess(sessionID, ip string, revoke AccessRevokeMap) 
 	return db.client.Set(key, string(newData), db.SessionDuration).Err()
 }
 
-func (db *DB) getAccessToken(sessionID, ip string) (*AccessToken, error) {
+func (db *DB) getAccessMap(sessionID, ip string) (AccessMap, error) {
 	key := fmt.Sprintf("beepboop-session:%s:%s", sessionID, ip)
 	data, err := db.client.Get(key).Result()
 	if err != nil {
@@ -141,9 +141,5 @@ func (db *DB) getAccessToken(sessionID, ip string) (*AccessToken, error) {
 		return nil, err
 	}
 
-	return &AccessToken{
-		SessionID: sessionID,
-		IP:        ip,
-		AccessMap: access,
-	}, nil
+	return access, nil
 }

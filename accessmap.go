@@ -1,8 +1,9 @@
 package beepboop
 
 import (
-	"fmt"
 	"net/http"
+	"net/url"
+	"strings"
 	"time"
 )
 
@@ -77,8 +78,8 @@ func (m AccessMap) ToCookies(expiration time.Duration) []*http.Cookie {
 	for typ, res := range m {
 		for resname, code := range res {
 			cookie := &http.Cookie{
-				Name:  fmt.Sprintf("%s-%s", typ, resname),
-				Value: string(code),
+				Name:  url.PathEscape(string(typ)) + "-" + url.PathEscape(string(resname)),
+				Value: url.PathEscape(string(code)),
 				Path:  "/",
 			}
 			if len(code) > 0 {
@@ -88,4 +89,17 @@ func (m AccessMap) ToCookies(expiration time.Duration) []*http.Cookie {
 		}
 	}
 	return cookies
+}
+
+func (m AccessMap) fromCookie(cookie *http.Cookie) {
+	access := strings.SplitN(cookie.Name, "-", 2)
+	if len(access) < 2 {
+		return
+	}
+	typ, _ := url.PathUnescape(access[0])
+	resname, _ := url.PathUnescape(access[1])
+	code, _ := url.PathUnescape(cookie.Value)
+	if len(typ) > 0 && len(resname) > 0 && len(code) > 0 {
+		m.Add(typ, resname, code)
+	}
 }
