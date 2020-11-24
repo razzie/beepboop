@@ -18,7 +18,7 @@ type Server struct {
 	mux              http.ServeMux
 	Layout           Layout
 	FaviconPNG       []byte
-	Header           map[string]string
+	Header           http.Header
 	Metadata         map[string]string
 	DB               *DB
 	Logger           *log.Logger
@@ -33,7 +33,7 @@ func NewServer() *Server {
 	srv := &Server{
 		Layout:           DefaultLayout,
 		FaviconPNG:       favicon,
-		Header:           map[string]string{"Server": "beepboop"},
+		Header:           map[string][]string{"Server": []string{"beepboop"}},
 		Metadata:         map[string]string{"generator": "https://github.com/razzie/beepboop"},
 		Logger:           log.New(os.Stdout, "", log.LstdFlags),
 		GeoIPClient:      geoclient.DefaultClient,
@@ -105,8 +105,10 @@ func (srv *Server) ConnectDB(redisAddr, redisPw string, redisDb int) error {
 }
 
 func (srv *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	for h, v := range srv.Header {
-		w.Header().Add(h, v)
+	h := w.Header()
+	for key, values := range srv.Header {
+		key = http.CanonicalHeaderKey(key)
+		h[key] = append(h[key], values...)
 	}
 	srv.mux.ServeHTTP(w, r)
 }
