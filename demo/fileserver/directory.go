@@ -14,10 +14,9 @@ import (
 
 // errors
 var (
-	ErrDirectoryRead = fmt.Errorf("Failed to read directory")
-	ErrFileRead      = fmt.Errorf("Failed to read file")
-	ErrOutsideRoot   = fmt.Errorf("File points outside of the root directory")
-	ErrHiddenFile    = fmt.Errorf("Hidden files are forbidden")
+	ErrOutsideRoot     = fmt.Errorf("File points outside of the root directory")
+	ErrSymlinkMaxDepth = fmt.Errorf("Symlink max depth exceeded")
+	ErrHiddenFile      = fmt.Errorf("Hidden files are forbidden")
 )
 
 // Directory ...
@@ -25,82 +24,32 @@ type Directory string
 
 // Open ...
 func (root Directory) Open(relPath string) (http.File, error) {
-	filename, isDir, err := root.resolve(relPath)
+	if isHiddenFile(relPath) {
+		return nil, ErrHiddenFile
+	}
+	filename, _, err := root.resolve(relPath)
 	if err != nil {
 		return nil, err
 	}
-	if isDir {
-		return nil, ErrFileRead
+	if isHiddenFile(filename) {
+		return nil, ErrHiddenFile
 	}
 	file, err := http.Dir(string(root)).Open(filename)
 	if err != nil {
-		return nil, ErrFileRead
+		return nil, fmt.Errorf("Failed to open: %s", relPath)
 	}
 	return file, nil
-}
-
-// GetFileOrEntries ...
-func (root Directory) GetFileOrEntries(relPath string) (file http.File, entries []*Entry, err error) {
-	filename, isDir, err := root.resolve(relPath)
-	if err != nil {
-		return
-	}
-	if isDir {
-		entries, err = root.getEntries(filename)
-		return
-	}
-	file, err = http.Dir(string(root)).Open(filename)
-	return
-}
-
-// GetEntries ...
-func (root Directory) GetEntries(relPath string) ([]*Entry, error) {
-	dir, isDir, err := root.resolve(relPath)
-	if err != nil {
-		return nil, err
-	}
-	if !isDir {
-		return nil, ErrDirectoryRead
-	}
-	return root.getEntries(dir)
-}
-
-func (root Directory) getEntries(relPath string) ([]*Entry, error) {
-	files, err := ioutil.ReadDir(relPath)
-	if err != nil {
-		return nil, ErrDirectoryRead
-	}
-	entries := make([]*Entry, 0, len(files)+1)
-	if relPath != "." {
-		entries = append(entries, newDirEntry("..", relPath))
-	}
-	for _, file := range files {
-		entry := newEntry(file, relPath)
-		if entry.Name[0] == '.' {
-			continue
-		}
-		entry.FullName, _, err = root.resolve(entry.FullName)
-		if err != nil {
-			continue
-		}
-		entries = append(entries, entry)
-	}
-	sortEntries(entries)
-	return entries, nil
 }
 
 func (root Directory) resolve(relPath string) (resolvedPath string, isDir bool, err error) {
 	if root == "" {
 		root = "."
 	}
-	if len(relPath) > 1 && path.Base(relPath)[0] == '.' {
-		err = ErrHiddenFile
-		return
-	}
 	absRoot, err := filepath.Abs(string(root))
 	if err != nil {
 		return
 	}
+	var depth int
 	filename := path.Join(absRoot, relPath)
 	for {
 		var fi os.FileInfo
@@ -124,6 +73,10 @@ func (root Directory) resolve(relPath string) (resolvedPath string, isDir bool, 
 		}
 		filename, err = os.Readlink(filename)
 		if err != nil {
+			return
+		}
+		if depth++; depth > 16 {
+			err = ErrSymlinkMaxDepth
 			return
 		}
 	}
@@ -150,28 +103,56 @@ type dirView struct {
 }
 
 func handleDirPage(r *beepboop.PageRequest, root Directory) *beepboop.View {
+	uri := path.Clean(r.RelPath)
 	r.Title = r.RelPath
 	v := dirView{
 		Dir: r.RelPath,
 	}
 
 	db := r.Context.DB
-	if db != nil && db.GetCachedValue("dir:"+r.RelPath, &v.Entries) == nil {
+	if db != nil && db.GetCachedValue("dir:"+uri, &v.Entries) == nil {
 		return r.Respond(v)
 	}
 
-	file, entries, err := root.GetFileOrEntries(r.RelPath)
+	file, err := root.Open(r.RelPath)
 	if err != nil {
 		return r.ErrorView(err.Error(), http.StatusInternalServerError)
 	}
-	if file != nil {
+	fi, err := file.Stat()
+	if err != nil {
+		file.Close()
+		return r.ErrorView(err.Error(), http.StatusInternalServerError)
+	}
+	if !fi.IsDir() {
 		return r.FileView(file, "", false)
 	}
+	defer file.Close()
+
+	files, err := file.Readdir(-1)
+	if err != nil {
+		return r.ErrorView(err.Error(), http.StatusInternalServerError)
+	}
+	entries := make([]*Entry, 0, len(files)+1)
+	if uri != "." {
+		entries = append(entries, newDirEntry("..", uri))
+	}
+	for _, fi := range files {
+		if isHiddenFile(fi.Name()) {
+			continue
+		}
+		entries = append(entries, newEntry(fi, uri))
+	}
+	sortEntries(entries)
 
 	if db != nil {
-		db.CacheValue("dir:"+r.RelPath, entries, false)
+		db.CacheValue("dir:"+uri, entries, false)
 	}
 
 	v.Entries = entries
 	return r.Respond(v)
+}
+
+func isHiddenFile(filename string) bool {
+	filename = path.Base(filename)
+	return len(filename) > 1 && strings.HasPrefix(filename, ".")
 }
