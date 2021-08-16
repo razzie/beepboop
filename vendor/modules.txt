@@ -2,9 +2,8 @@
 github.com/asaskevich/govalidator
 # github.com/biter777/countries v1.3.1
 github.com/biter777/countries
-# github.com/elazarl/go-bindata-assetfs v1.0.1
-github.com/elazarl/go-bindata-assetfs
 # github.com/go-redis/redis/v7 v7.4.0
+## explicit
 github.com/go-redis/redis/v7
 github.com/go-redis/redis/v7/internal
 github.com/go-redis/redis/v7/internal/consistenthash
@@ -13,15 +12,22 @@ github.com/go-redis/redis/v7/internal/pool
 github.com/go-redis/redis/v7/internal/proto
 github.com/go-redis/redis/v7/internal/util
 # github.com/mssola/user_agent v0.5.2
+## explicit
 github.com/mssola/user_agent
 # github.com/razzie/babble v0.0.0-20201015224220-210f32b7a231
+## explicit
 github.com/razzie/babble
 # github.com/razzie/geoip-server v0.0.0-20201008190457-b5a2cab23ca8
+## explicit
 github.com/razzie/geoip-server/client
 github.com/razzie/geoip-server/geoip
 # github.com/razzie/reqip v0.0.0-20201102012254-b5eb0ae76a05
+## explicit
 github.com/razzie/reqip
 # github.com/thedevsaddam/gojsonq v2.3.0+incompatible
 github.com/thedevsaddam/gojsonq
+# github.com/tjarratt/babble v0.0.0-20191209142150-eecdf8c2339d
+## explicit
 # golang.org/x/time v0.0.0-20200630173020-3af7569d3a1e
+## explicit
 golang.org/x/time/rate
