@@ -14,16 +14,12 @@ import (
 var (
 	RootDir   string
 	RedisAddr string
-	RedisPw   string
-	RedisDb   int
 	Port      int
 )
 
 func init() {
 	flag.StringVar(&RootDir, "root", "", "Root directory to serve")
-	flag.StringVar(&RedisAddr, "redis-addr", "localhost:6379", "Redis hostname:port")
-	flag.StringVar(&RedisPw, "redis-pw", "", "Redis password")
-	flag.IntVar(&RedisDb, "redis-db", 0, "Redis database (0-15)")
+	flag.StringVar(&RedisAddr, "redis", "redis://localhost:6379", "Redis connection string")
 	flag.IntVar(&Port, "port", 8080, "HTTP port")
 	flag.Parse()
 
@@ -35,7 +31,7 @@ func main() {
 	srv.AddMiddlewares(AuthMiddleware(RootDir))
 	srv.AddPages(DirectoryPage(RootDir), AuthPage(RootDir))
 
-	if err := srv.ConnectDB(RedisAddr, RedisPw, RedisDb); err != nil {
+	if err := srv.ConnectDB(RedisAddr); err != nil {
 		log.Print(err)
 	}
 
