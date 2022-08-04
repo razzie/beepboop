@@ -4,6 +4,8 @@ import (
 	"html/template"
 	"net/http"
 	"strings"
+
+	"github.com/Masterminds/sprig/v3"
 )
 
 var styleT = `
@@ -151,7 +153,7 @@ type Layout interface {
 type LayoutRenderer func(w http.ResponseWriter, r *http.Request, title string, data interface{}, statusCode int)
 
 // DefaultLayout is razlink's default layout
-var DefaultLayout Layout = (*layout)(template.Must(template.New("layout").Funcs(TemplateFuncs).Parse(layoutT)))
+var DefaultLayout Layout = (*layout)(template.Must(template.New("layout").Funcs(sprig.FuncMap()).Funcs(TemplateFuncs).Parse(layoutT)))
 
 type layout template.Template
 
