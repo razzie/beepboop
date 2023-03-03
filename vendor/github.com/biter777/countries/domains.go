@@ -1,7 +1,6 @@
 package countries
 
 import (
-	"database/sql/driver"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -18,7 +17,7 @@ type Domain struct {
 }
 
 // Type implements Typer interface
-func (c DomainCode) Type() string {
+func (_ DomainCode) Type() string {
 	return TypeDomainCode
 }
 
@@ -91,12 +90,12 @@ func (c DomainCode) Info() *Domain {
 }
 
 // Type implements Typer interface
-func (c Domain) Type() string {
+func (_ Domain) Type() string {
 	return TypeDomain
 }
 
 // Value implements database/sql/driver.Valuer
-func (c Domain) Value() (driver.Value, error) {
+func (c Domain) Value() (Value, error) {
 	return json.Marshal(c)
 }
 

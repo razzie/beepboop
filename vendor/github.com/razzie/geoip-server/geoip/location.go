@@ -17,6 +17,7 @@ type Location struct {
 	City        string `json:"city"`
 	TimeZone    string `json:"timezone"`
 	ISP         string `json:"isp,omitempty"`
+	Source      string `json:"source,omitempty"`
 }
 
 func (loc Location) String() string {

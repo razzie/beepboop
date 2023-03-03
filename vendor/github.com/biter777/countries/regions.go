@@ -1,7 +1,6 @@
 package countries
 
 import (
-	"database/sql/driver"
 	"encoding/json"
 	"fmt"
 )
@@ -16,7 +15,7 @@ type Region struct {
 }
 
 // Type implements Typer interface
-func (c RegionCode) Type() string {
+func (_ RegionCode) Type() string {
 	return TypeRegionCode
 }
 
@@ -85,12 +84,12 @@ func (c RegionCode) Info() *Region {
 }
 
 // Type implements Typer interface
-func (r *Region) Type() string {
+func (_ *Region) Type() string {
 	return TypeRegion
 }
 
 // Value implements database/sql/driver.Valuer
-func (r Region) Value() (driver.Value, error) {
+func (r Region) Value() (Value, error) {
 	return json.Marshal(r)
 }
 

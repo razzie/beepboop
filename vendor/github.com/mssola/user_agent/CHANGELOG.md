@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.6.0
+
+- Added information on the model of mobile devices. See [746647ad73b5](https://github.com/mssola/user_agent/commit/746647ad73b5ad8648175bbd07319c0a8ac559c6).
+- Added support for PhantomJS. See [6b5e6f6ebfa8](https://github.com/mssola/user_agent/commit/6b5e6f6ebfa87464ccdb42bac5448cbf46ce1ba1).
+
+## 0.5.4
+
+- Add detection of Coc Coc Browser. See [897eb45aec23](https://github.com/mssola/user_agent/commit/897eb45aec2330e7566c48c9e54192aae84bd8e9).
+- Add detection of Headless Chrome. See [897eb45aec23](https://github.com/mssola/user_agent/commit/897eb45aec2330e7566c48c9e54192aae84bd8e9).
+- Add detection of iOS WebViews. See [897eb45aec23](https://github.com/mssola/user_agent/commit/897eb45aec2330e7566c48c9e54192aae84bd8e9).
+
+## 0.5.3
+
+- Fix detection of Firefox on iPad. See [42e4a8f39125](https://github.com/mssola/user_agent/commit/42e4a8f39125a6680fb5367a4602963f1351e069).
+- Fix detection of Linux ARM-based Android. See [3b0e113c8047](https://github.com/mssola/user_agent/commit/3b0e113c804708c01de00c27aae07d2acfee40d8).
+- Add detection of Chromium Edge on Windows. See [ea81f1e9d61c](https://github.com/mssola/user_agent/commit/ea81f1e9d61c094df4156690a8f4d5481b0d6c4a).
+- Add detection of OkHttp. See [6b33e248e796](https://github.com/mssola/user_agent/commit/6b33e248e7969cf3e76128a34d33be88d4eb0dc8).
+
 ## 0.5.2
 
 - Detect Electron. See [commit](https://github.com/mssola/user_agent/commit/1a36963d74c0efca7de80dc7518a0958c66b3c4f).

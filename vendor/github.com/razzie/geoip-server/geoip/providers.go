@@ -6,7 +6,7 @@ import (
 
 // Providers is a map of known providers
 var Providers = map[string]*Provider{
-	"freegeoip.app": &Provider{
+	"freegeoip.app": {
 		Name:        "freegeoip.app",
 		TemplateURL: "https://freegeoip.app/json/%[1]s",
 		Mappings: Location{
@@ -18,7 +18,7 @@ var Providers = map[string]*Provider{
 			TimeZone:    "time_zone",
 		},
 	},
-	"db-ip.com": &Provider{
+	"db-ip.com": {
 		Name:        "db-ip.com",
 		TemplateURL: "http://api.db-ip.com/v2/free/%[1]s",
 		Mappings: Location{
@@ -29,7 +29,7 @@ var Providers = map[string]*Provider{
 			City:        "city",
 		},
 	},
-	"keycdn.com": &Provider{
+	"keycdn.com": {
 		Name:        "keycdn.com",
 		TemplateURL: "https://tools.keycdn.com/geo.json?host=%[1]s",
 		Mappings: Location{
@@ -42,7 +42,7 @@ var Providers = map[string]*Provider{
 			ISP:         "data.geo.isp",
 		},
 	},
-	"ip-api.com": &Provider{
+	"ip-api.com": {
 		Name:        "ip-api.com",
 		TemplateURL: "http://ip-api.com/json/%[1]s",
 		Mappings: Location{
@@ -55,7 +55,7 @@ var Providers = map[string]*Provider{
 			ISP:         "isp",
 		},
 	},
-	"ipinfo.io": &Provider{
+	"ipinfo.io": {
 		Name:        "ipinfo.io",
 		TemplateURL: "http://ipinfo.io/%[1]s?token=%[2]s",
 		Mappings: Location{

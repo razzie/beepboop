@@ -71,8 +71,10 @@ const (
 	Botswana CountryCode = 72
 	// Bouvet                                 CountryCode = 74
 	Bouvet CountryCode = 74
-	// Brazil                                 CountryCode = 76
-	Brazil CountryCode = 76
+	// Brazil (deprecated)                    CountryCode = 76
+	BrazilDeprecated CountryCode = 76
+	// Brazil                                 CountryCode = 986
+	Brazil CountryCode = 986
 	// BritishIndianOceanTerritory            CountryCode = 86
 	BritishIndianOceanTerritory CountryCode = 86
 	// Brunei                                 CountryCode = 96
@@ -421,8 +423,8 @@ const (
 	Spain CountryCode = 724
 	// SriLanka                               CountryCode = 144
 	SriLanka CountryCode = 144
-	// Sudan                                  CountryCode = 736
-	Sudan CountryCode = 736
+	// Sudan                                  CountryCode = 729
+	Sudan CountryCode = 729
 	// Suriname                               CountryCode = 740
 	Suriname CountryCode = 740
 	// SvalbardAndJanMayenIslands             CountryCode = 744
@@ -619,8 +621,8 @@ const (
 	BW CountryCode = 72
 	// BV CountryCode = 74
 	BV CountryCode = 74
-	// BR CountryCode = 76
-	BR CountryCode = 76
+	// BR CountryCode = 986
+	BR CountryCode = 986
 	// IO CountryCode = 86
 	IO CountryCode = 86
 	// BN CountryCode = 96
@@ -957,8 +959,8 @@ const (
 	ES CountryCode = 724
 	// LK CountryCode = 144
 	LK CountryCode = 144
-	// SD CountryCode = 736
-	SD CountryCode = 736
+	// SD CountryCode = 729
+	SD CountryCode = 729
 	// SR CountryCode = 740
 	SR CountryCode = 740
 	// SJ CountryCode = 744
@@ -1131,8 +1133,8 @@ const (
 	BWA CountryCode = 72
 	// BVT CountryCode = 74
 	BVT CountryCode = 74
-	// BRA CountryCode = 76
-	BRA CountryCode = 76
+	// BRA CountryCode = 986
+	BRA CountryCode = 986
 	// IOT CountryCode = 86
 	IOT CountryCode = 86
 	// BRN CountryCode = 96
@@ -1469,8 +1471,8 @@ const (
 	ESP CountryCode = 724
 	// LKA CountryCode = 144
 	LKA CountryCode = 144
-	// SDN CountryCode = 736
-	SDN CountryCode = 736
+	// SDN CountryCode = 729
+	SDN CountryCode = 729
 	// SUR CountryCode = 740
 	SUR CountryCode = 740
 	// SJM CountryCode = 744
