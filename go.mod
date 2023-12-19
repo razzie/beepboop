@@ -18,6 +18,6 @@ require (
 	github.com/shopspring/decimal v1.3.1 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/tjarratt/babble v0.0.0-20191209142150-eecdf8c2339d // indirect
-	golang.org/x/crypto v0.6.0 // indirect
+	golang.org/x/crypto v0.17.0 // indirect
 	golang.org/x/time v0.3.0
 )
