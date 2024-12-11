@@ -57,7 +57,7 @@ github.com/spf13/cast
 github.com/thedevsaddam/gojsonq
 # github.com/tjarratt/babble v0.0.0-20191209142150-eecdf8c2339d
 ## explicit
-# golang.org/x/crypto v0.17.0
+# golang.org/x/crypto v0.31.0
 ## explicit
 golang.org/x/crypto/bcrypt
 golang.org/x/crypto/blowfish
